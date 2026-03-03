@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProspectBot — Prospección WhatsApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #161a23;
+      --surface2: #1e2330;
+      --border: #2a3044;
+      --accent: #25d366;
+      /* WhatsApp green */
+      --accent2: #128c7e;
+      --blue: #4f8ef7;
+      --yellow: #f5a623;
+      --red: #ef4565;
+      --text: #e8eaf0;
+      --muted: #7a8299;
+      --success: #25d366;
+      --radius: 12px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────── */
+    .sidebar {
+      width: 220px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      position: fixed;
+      height: 100vh;
+      z-index: 10;
+    }
+
+    .logo {
+      padding: 0 20px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .logo h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+    }
+
+    .logo p {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    nav {
+      padding: 16px 12px;
+      flex: 1;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+      margin-bottom: 2px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: rgba(37, 211, 102, .12);
+      color: var(--accent);
+    }
+
+    .nav-item .icon {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      animation: pulse 2s infinite;
+    }
+
+    .dot.online {
+      background: var(--accent);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .4;
+      }
+    }
+
+    /* ── MAIN ────────────────────────────────── */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      padding: 32px;
+      max-width: calc(100vw - 220px);
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* ── HEADER ─────────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .page-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .page-header p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ── STAT CARDS ──────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: border-color .2s;
+    }
+
+    .stat-card:hover {
+      border-color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 700;
+      margin: 6px 0 2px;
+    }
+
+    .stat-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stat-card.green .stat-value {
+      color: var(--accent);
+    }
+
+    .stat-card.blue .stat-value {
+      color: var(--blue);
+    }
+
+    .stat-card.yellow .stat-value {
+      color: var(--yellow);
+    }
+
+    .stat-card.red .stat-value {
+      color: var(--red);
+    }
+
+    /* ── CARDS ───────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── WORKER CONTROLS ────────────────────── */
+    .worker-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .worker-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .worker-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(37, 211, 102, .1);
+      border: 1px solid rgba(37, 211, 102, .25);
+      color: var(--accent);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .worker-badge.paused {
+      background: rgba(245, 166, 35, .1);
+      border-color: rgba(245, 166, 35, .25);
+      color: var(--yellow);
+    }
+
+    .worker-badge.stopped {
+      background: rgba(239, 69, 101, .1);
+      border-color: rgba(239, 69, 101, .25);
+      color: var(--red);
+    }
+
+    .worker-meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: #1fb158;
+    }
+
+    .btn-danger {
+      background: rgba(239, 69, 101, .15);
+      color: var(--red);
+      border: 1px solid rgba(239, 69, 101, .3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 69, 101, .25);
+    }
+
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    /* ── PROGRESS BAR ────────────────────────── */
+    .progress-bar {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      border-radius: 3px;
+      transition: width .6s ease;
+    }
+
+    /* ── UPLOAD ZONE ─────────────────────────── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(37, 211, 102, .04);
+    }
+
+    .upload-zone input[type=file] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .upload-zone h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .upload-zone p {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .form-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+    }
+
+    /* ── ALERT / TOAST ───────────────────────── */
+    #toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      border-left: 3px solid;
+      backdrop-filter: blur(10px);
+      animation: slideIn .3s ease;
+      max-width: 360px;
+    }
+
+    .toast.success {
+      background: rgba(37, 211, 102, .15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .toast.error {
+      background: rgba(239, 69, 101, .15);
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .toast.info {
+      background: rgba(79, 142, 247, .15);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(30px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* ── RESULT BOX ──────────────────────────── */
+    .result-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .result-box.visible {
+      display: block;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-row:last-child {
+      border-bottom: none;
+    }
+
+    .result-label {
+      color: var(--muted);
+    }
+
+    .result-value {
+      font-weight: 600;
+    }
+
+    .result-value.green {
+      color: var(--accent);
+    }
+
+    .result-value.red {
+      color: var(--red);
+    }
+
+    .result-value.yellow {
+      color: var(--yellow);
+    }
+
+    /* ── TABLE ───────────────────────────────── */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+
+    tbody tr:hover {
+      background: var(--surface2);
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody td {
+      padding: 12px 14px;
+      color: var(--text);
+    }
+
+    .cell-name {
+      font-weight: 600;
+    }
+
+    .cell-phone {
+      font-family: monospace;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .cell-model {
+      color: var(--muted);
+      font-size: 12px;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── BADGES ──────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-pending {
+      background: rgba(122, 130, 153, .15);
+      color: var(--muted);
+    }
+
+    .badge-sent {
+      background: rgba(79, 142, 247, .15);
+      color: var(--blue);
+    }
+
+    .badge-contact {
+      background: rgba(37, 211, 102, .15);
+      color: var(--accent);
+    }
+
+    .badge-error {
+      background: rgba(239, 69, 101, .15);
+      color: var(--red);
+    }
+
+    .badge-process {
+      background: rgba(245, 166, 35, .15);
+      color: var(--yellow);
+    }
+
+    .badge-interes {
+      background: rgba(37, 211, 102, .15);
+      color: var(--accent);
+    }
+
+    .badge-rechazo {
+      background: rgba(239, 69, 101, .15);
+      color: var(--red);
+    }
+
+    .badge-duda {
+      background: rgba(245, 166, 35, .15);
+      color: var(--yellow);
+    }
+
+    /* ── FILTERS ──────────────────────────────── */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .filter-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .filter-select:focus {
+      border-color: var(--accent);
+    }
+
+    /* ── CONFIGURACION ───────────────────────── */
+    .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .config-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .inline-btn {
+      margin-top: 20px;
+    }
+
+    /* ── EMPTY STATE ─────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+    }
+
+    /* ── LOADING SPINNER ─────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, .2);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── MODAL QR ────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .qr-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      width: 360px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, .4);
+    }
+
+    .qr-container {
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 20px 0;
+      display: inline-block;
+      min-width: 200px;
+      min-height: 200px;
+    }
+
+    .qr-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .qr-modal h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .qr-modal p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">📲</div>
+      <h1>ProspectBot</h1>
+      <p>Prospección WhatsApp IA</p>
+    </div>
+    <nav>
+      <button class="nav-item active" onclick="navigate('dashboard')">
+        <span class="icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" onclick="navigate('cargar')">
+        <span class="icon">📥</span> Cargar Base
+      </button>
+      <button class="nav-item" onclick="navigate('leads')">
+        <span class="icon">👥</span> Leads
+      </button>
+      <button class="nav-item" onclick="navigate('config')">
+        <span class="icon">⚙️</span> Configuración
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="status-pill">
+        <span id="wsp-dot" class="dot"></span>
+        <span id="wsp-status">Verificando...</span>
+      </div>
+      <button id="btn-show-qr" class="btn btn-ghost btn-sm"
+        style="display:none; width:100%; margin-top:10px; border-color:var(--accent); color:var(--accent)"
+        onclick="showQRModal()">🔗 Escanear QR</button>
+    </div>
+  </aside>
+
+  <!-- MODAL QR -->
+  <div id="modal-qr" class="modal-overlay">
+    <div class="qr-modal">
+      <h3>Escanear QR WhatsApp</h3>
+      <p>Abrí WhatsApp en tu teléfono → Configuración → Dispositivos Vinculados</p>
+      <div id="qr-wrap" class="qr-container">
+        <div class="spinner" style="margin-top:90px"></div>
+      </div>
+      <div id="qr-info" style="font-size:11px; color:var(--muted); margin-bottom:15px"></div>
+      <button class="btn btn-ghost" onclick="closeQRModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── DASHBOARD ─────────────────────── -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div>
+          <h2>Dashboard</h2>
+          <p>Estado en tiempo real de la campaña activa</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="refreshAll()">🔄 Actualizar</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Leads</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-sub">en base de datos</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Enviados</div>
+          <div class="stat-value" id="stat-enviados">—</div>
+          <div class="stat-sub" id="stat-tasa-envio">—</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Interesados 🔥</div>
+          <div class="stat-value" id="stat-interesados">—</div>
+          <div class="stat-sub" id="stat-tasa-interes">—</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Pendientes</div>
+          <div class="stat-value" id="stat-pendientes">—</div>
+          <div class="stat-sub">por enviar</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">Dudas</div>
+          <div class="stat-value" id="stat-dudas">—</div>
+          <div class="stat-sub">seguimiento</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Rechazos</div>
+          <div class="stat-value" id="stat-rechazos">—</div>
+          <div class="stat-sub">no interesados</div>
+        </div>
+      </div>
+
+      <!-- Worker -->
+      <div class="card">
+        <div class="card-title">⚙️ Worker de Envío</div>
+        <div class="worker-row">
+          <div class="worker-info">
+            <div id="worker-badge" class="worker-badge stopped">
+              <span class="dot"></span> Verificando...
+            </div>
+            <div>
+              <div class="worker-meta" id="worker-meta-enviados">Enviados hoy: —</div>
+              <div class="worker-meta" id="worker-meta-ultimo">Último envío: —</div>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btn-reanudar" onclick="workerReanudar()" style="display:none">▶
+              Reanudar</button>
+            <button class="btn btn-danger" id="btn-pausar" onclick="workerPausar()">⏸ Pausar</button>
+            <button class="btn btn-ghost btn-sm" onclick="workerResetear()">🔧 Resetear atascados</button>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div style="margin-top:6px; font-size:11px; color:var(--muted)" id="progress-label">—</div>
+      </div>
+
+      <!-- Leads recientes interesados -->
+      <div class="card">
+        <div class="card-title">🔥 Últimos Interesados</div>
+        <div id="hot-leads-container">
+          <div class="empty-state">
+            <div class="icon">🕐</div>
+            <p>Cuando los leads respondan, aparecerán aquí</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CARGAR BASE ────────────────────── -->
+    <div id="page-cargar" class="page">
+      <div class="page-header">
+        <div>
+          <h2>Cargar Base de Datos</h2>
+          <p>Subí tu Excel o CSV — el sistema detecta las columnas automáticamente</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="file-input" accept=".xlsx,.csv" onchange="onFileSelected(event)" />
+          <div class="upload-icon">📂</div>
+          <h3>Arrastrá tu archivo aquí o hacé click</h3>
+          <p>Formatos soportados: .xlsx · .csv</p>
+          <p style="margin-top:8px;font-size:12px;color:var(--accent)">Sin cabeceras? No hay problema — lo detectamos
+            automáticamente</p>
+        </div>
+
+        <div id="file-selected" style="display:none; margin-top:14px;">
+          <div
+            style="display:flex;align-items:center;gap:10px; padding: 12px 14px; background:var(--surface2); border-radius:8px; border:1px solid var(--border);">
+            <span style="font-size:20px">📄</span>
+            <div>
+              <div id="file-name" style="font-weight:600; font-size:13px;"></div>
+              <div id="file-size" style="font-size:11px;color:var(--muted);"></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="clearFile()">✕ Quitar</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre de la Campaña (opcional)</label>
+            <input type="text" id="campana-input" class="form-input" placeholder="ej: Renault_Marzo_2025" />
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="btn btn-primary" id="btn-cargar" onclick="cargarArchivo()" disabled>
+              <span id="btn-cargar-text">📥 Cargar Base</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="upload-result" class="result-box"></div>
+      </div>
+
+      <div class="card" style="margin-top:0">
+        <div class="card-title">ℹ️ Guía de formato</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; font-size:13px;">
+          <div>
+            <p style="font-weight:600; margin-bottom:8px; color:var(--accent)">✅ Con Cabeceras</p>
+            <p style="color:var(--muted)">El sistema busca automáticamente columnas llamadas: <strong>Nombre, Telefono,
+                Celular, Modelo, Plan, Cuotas</strong></p>
+          </div>
+          <div>
+            <p style="font-weight:600; margin-bottom:8px; color:var(--blue)">✅ Sin Cabeceras (Base Tipo Nosis)</p>
+            <p style="color:var(--muted)">Detectado automáticamente. Extrae por posición: Col7=Apellido, Col8=Nombre,
+              Col20=Tel, Col90=Marca, Col91=Modelo</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LEADS ──────────────────────────── -->
+    <div id="page-leads" class="page">
+      <div class="page-header">
+        <div>
+          <h2>Leads</h2>
+          <p id="leads-count">—</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadLeads()">🔄 Actualizar</button>
+      </div>
+
+      <div class="filter-bar">
+        <select class="filter-select" id="filter-estado" onchange="loadLeads()">
+          <option value="">Todos los estados</option>
+          <option value="PENDIENTE">⏳ Pendiente</option>
+          <option value="PROCESANDO">⚡ Procesando</option>
+          <option value="ENVIADO">📤 Enviado</option>
+          <option value="CONTACTADO">🔥 Contactado</option>
+          <option value="ERROR_NUMERO">❌ Error número</option>
+        </select>
+        <select class="filter-select" id="filter-ia" onchange="loadLeads()">
+          <option value="">Todas las clasificaciones</option>
+          <option value="INTERES">🔥 Interés</option>
+          <option value="DUDA">🤔 Duda</option>
+          <option value="RECHAZO">❌ Rechazo</option>
+        </select>
+        <select class="filter-select" id="filter-limit" onchange="loadLeads()">
+          <option value="50">50 leads</option>
+          <option value="100">100 leads</option>
+          <option value="200">200 leads</option>
+          <option value="500">500 leads</option>
+        </select>
+      </div>
+
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Teléfono</th>
+                <th>Vehículo</th>
+                <th>Estado</th>
+                <th>IA</th>
+                <th>Razón IA</th>
+                <th>Ingresado</th>
+              </tr>
+            </thead>
+            <tbody id="leads-tbody">
+              <tr>
+                <td colspan="8">
+                  <div class="empty-state">
+                    <p>Cargando leads...</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONFIGURACION ────────────────────── -->
+    <div id="page-config" class="page">
+      <div class="page-header">
+        <div>
+          <h2>Configuración</h2>
+          <p>Parámetros de envío y conexiones externas</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📱 Evolution API (WhatsApp)</div>
+        <div class="config-grid">
+          <div class="form-group">
+            <label>URL del VPS</label>
+            <input type="text" id="cfg-evo-url" class="form-input" placeholder="http://IP:8080" />
+          </div>
+          <div class="form-group">
+            <label>API Key</label>
+            <input type="password" id="cfg-evo-key" class="form-input" placeholder="••••••••••••" />
+          </div>
+          <div class="form-group">
+            <label>Nombre de Instancia</label>
+            <input type="text" id="cfg-evo-inst" class="form-input" placeholder="mi-instancia" />
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="btn btn-ghost" onclick="testWhatsApp()">🔌 Probar conexión</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⏱️ Parámetros Anti-Ban del Worker</div>
+        <div class="config-grid">
+          <div class="form-group">
+            <label>Delay mínimo entre mensajes (segundos)</label>
+            <input type="number" id="cfg-delay-min" class="form-input" value="45" min="10" max="300" />
+          </div>
+          <div class="form-group">
+            <label>Delay máximo entre mensajes (segundos)</label>
+            <input type="number" id="cfg-delay-max" class="form-input" value="120" min="30" max="600" />
+          </div>
+          <div class="form-group">
+            <label>Hora de inicio de envíos</label>
+            <input type="number" id="cfg-hora-ini" class="form-input" value="9" min="0" max="23" />
+          </div>
+          <div class="form-group">
+            <label>Hora de fin de envíos</label>
+            <input type="number" id="cfg-hora-fin" class="form-input" value="20" min="0" max="23" />
+          </div>
+          <div class="form-group">
+            <label>Límite de mensajes por día</label>
+            <input type="number" id="cfg-max-dia" class="form-input" value="250" min="10" max="1000" />
+          </div>
+          <div class="form-group">
+            <label>Leads por ciclo (batch size)</label>
+            <input type="number" id="cfg-batch" class="form-input" value="5" min="1" max="20" />
+          </div>
+        </div>
+        <p style="font-size:12px; color:var(--muted); margin-top:14px;">
+          ⚠️ Los cambios de configuración requieren reiniciar el servidor para aplicarse (se guardan en .env)
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔥 CRM Externo (Handoff)</div>
+        <div class="config-grid">
+          <div class="form-group">
+            <label>URL del Webhook del CRM</label>
+            <input type="text" id="cfg-crm-url" class="form-input" placeholder="https://tu-crm.com/api/webhook" />
+          </div>
+          <div class="form-group">
+            <label>Token de seguridad</label>
+            <input type="password" id="cfg-crm-secret" class="form-input" placeholder="••••••••••••" />
+          </div>
+          <div class="form-group">
+            <label>Respuestas "Duda" antes de escalar</label>
+            <input type="number" id="cfg-max-dudas" class="form-input" value="3" min="1" max="10" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main><!-- /main -->
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container"></div>
+
+  <script>
+    /* ────────────────────────────────────────────────────────
+       NAVIGATION
+    ──────────────────────────────────────────────────────── */
+    function navigate(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n => {
+        if (n.textContent.trim().toLowerCase().includes(
+          page === 'dashboard' ? 'dashboard' :
+            page === 'cargar' ? 'cargar' :
+              page === 'leads' ? 'leads' : 'config'
+        )) n.classList.add('active');
+      });
+      if (page === 'leads') loadLeads();
+      if (page === 'dashboard') refreshAll();
+    }
+
+    /* ────────────────────────────────────────────────────────
+       TOAST
+    ──────────────────────────────────────────────────────── */
+    function toast(msg, type = 'info', duration = 4000) {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.textContent = msg;
+      document.getElementById('toast-container').appendChild(el);
+      setTimeout(() => el.remove(), duration);
+    }
+
+    /* ────────────────────────────────────────────────────────
+   WHATSAPP QR MODAL
+──────────────────────────────────────────────────────── */
+    let qrInterval = null;
+
+    async function showQRModal() {
+      const modal = document.getElementById('modal-qr');
+      const wrap = document.getElementById('qr-wrap');
+      const info = document.getElementById('qr-info');
+
+      modal.classList.add('active');
+      wrap.innerHTML = '<div class="spinner" style="margin-top:90px"></div>';
+      info.textContent = 'Obteniendo QR de Evolution API...';
+
+      async function fetchQR() {
+        try {
+          const r = await fetch('/api/worker/conectar');
+          const d = await r.json();
+
+          if (d.code) {
+            wrap.innerHTML = `<img src="${d.code}" alt="WhatsApp QR" />`;
+            info.textContent = 'El QR se actualiza cada 30 segundos.';
+          } else if (d.pairingCode) {
+            wrap.innerHTML = `<div style="font-size:32px; font-weight:800; padding:40px; color:#000">${d.pairingCode}</div>`;
+            info.textContent = 'Usa este código de emparejamiento.';
+          } else {
+            wrap.innerHTML = '<div style="color:var(--red); padding:20px;">Error al obtener el QR.<br>Revisá el log del microservicio.</div>';
+            info.textContent = d.error || '¿Configuraste bien el .env?';
+          }
+        } catch (e) {
+          wrap.innerHTML = '<div style="color:var(--red); padding:20px;">Error de red.</div>';
+        }
+      }
+
+      fetchQR();
+      qrInterval = setInterval(fetchQR, 20000); // Actualizar cada 20s
+    }
+
+    function closeQRModal() {
+      document.getElementById('modal-qr').classList.remove('active');
+      if (qrInterval) clearInterval(qrInterval);
+      refreshAll();
+    }
+
+    /* ────────────────────────────────────────────────────────
+       DASHBOARD — REFRESH
+    ──────────────────────────────────────────────────────── */
+    async function refreshAll() {
+      await Promise.all([loadWorkerStatus(), loadResumen()]);
+    }
+
+    async function loadWorkerStatus() {
+      try {
+        const r = await fetch('/api/worker/estado');
+        const d = await r.json();
+        const w = d.worker;
+        const leads = d.leads;
+        const wsp = d.instancia_whatsapp;
+
+        // Worker badge
+        const badge = document.getElementById('worker-badge');
+        const dot = document.getElementById('wsp-dot');
+        const statusText = document.getElementById('wsp-status');
+
+        if (!w.corriendo) {
+          badge.className = 'worker-badge stopped';
+          badge.innerHTML = '⬤ &nbsp;Detenido';
+        } else if (w.pausado_por_admin) {
+          badge.className = 'worker-badge paused';
+          badge.innerHTML = '⬤ &nbsp;Pausado';
+          document.getElementById('btn-pausar').style.display = 'none';
+          document.getElementById('btn-reanudar').style.display = 'flex';
+        } else {
+          badge.className = 'worker-badge';
+          badge.innerHTML = '⬤ &nbsp;Activo';
+          document.getElementById('btn-pausar').style.display = 'flex';
+          document.getElementById('btn-reanudar').style.display = 'none';
+        }
+
+        // WhatsApp status
+        const wspOk = wsp && wsp.state === 'open';
+        dot.className = 'dot' + (wspOk ? ' online' : '');
+        statusText.textContent = wspOk ? 'WhatsApp conectado' : 'WhatsApp desconectado';
+        document.getElementById('btn-show-qr').style.display = wspOk ? 'none' : 'block';
+
+        document.getElementById('worker-meta-enviados').textContent =
+          `Enviados hoy: ${w.enviados_hoy} / 250`;
+        document.getElementById('worker-meta-ultimo').textContent =
+          `Último envío: ${w.ultimo_envio ? new Date(w.ultimo_envio).toLocaleTimeString('es-AR') : 'Nunca'}`;
+
+        // Stats
+        document.getElementById('stat-total').textContent = leads.total;
+        document.getElementById('stat-pendientes').textContent = leads.pendientes;
+        const enviados = leads.enviados + leads.contactados;
+        document.getElementById('stat-enviados').textContent = enviados;
+
+        const tasaEnvio = leads.total > 0 ? ((enviados / leads.total) * 100).toFixed(1) + '%' : '0%';
+        document.getElementById('stat-tasa-envio').textContent = tasaEnvio + ' del total';
+
+        // Progress bar
+        const pct = leads.total > 0 ? (enviados / leads.total) * 100 : 0;
+        document.getElementById('progress-fill').style.width = pct + '%';
+        document.getElementById('progress-label').textContent =
+          `${enviados} de ${leads.total} leads contactados (${pct.toFixed(1)}%)`;
+
+      } catch (e) {
+        console.error('Error cargando worker status:', e);
+      }
+    }
+
+    async function loadResumen() {
+      try {
+        const r = await fetch('/api/reportes/resumen');
+        const d = await r.json();
+        const c = d.por_clasificacion_ia || {};
+        document.getElementById('stat-interesados').textContent = c['INTERES'] || 0;
+        document.getElementById('stat-dudas').textContent = c['DUDA'] || 0;
+        document.getElementById('stat-rechazos').textContent = c['RECHAZO'] || 0;
+
+        const enviados = (d.por_estado?.ENVIADO || 0) + (d.por_estado?.CONTACTADO || 0);
+        const total = d.resumen?.total_leads || 0;
+        const interes = c['INTERES'] || 0;
+        const tasa = enviados > 0 ? ((interes / enviados) * 100).toFixed(1) + '%' : '0%';
+        document.getElementById('stat-tasa-interes').textContent = tasa + ' de respuestas';
+
+        // Hot leads
+        loadHotLeads();
+
+      } catch (e) { }
+    }
+
+    async function loadHotLeads() {
+      try {
+        const r = await fetch('/api/reportes/leads?clasificacion=INTERES&limit=5');
+        const d = await r.json();
+        const container = document.getElementById('hot-leads-container');
+        if (!d.leads || d.leads.length === 0) {
+          container.innerHTML = `<div class="empty-state"><div class="icon">🕐</div><p>Aún no hay leads interesados. El worker está trabajando.</p></div>`;
+          return;
+        }
+        container.innerHTML = '<div class="table-wrap"><table>' +
+          '<thead><tr><th>Cliente</th><th>Vehículo</th><th>Razón IA</th><th>Respondió</th></tr></thead>' +
+          '<tbody>' + d.leads.map(l => `
+        <tr>
+          <td class="cell-name">${escHtml(l.nombre)}</td>
+          <td class="cell-model">${escHtml(l.modelo || '—')}</td>
+          <td style="font-size:12px; color:var(--muted)">${escHtml(l.razon_ia || '—')}</td>
+          <td style="font-size:12px; color:var(--muted)">${l.fecha_respuesta ? fmtDate(l.fecha_respuesta) : '—'}</td>
+        </tr>`).join('') + '</tbody></table></div>';
+      } catch (e) { }
+    }
+
+    /* ────────────────────────────────────────────────────────
+       WORKER ACTIONS
+    ──────────────────────────────────────────────────────── */
+    async function workerPausar() {
+      await fetch('/api/worker/pausar', { method: 'POST' });
+      toast('Worker pausado. Los mensajes en cola se detienen.', 'info');
+      setTimeout(loadWorkerStatus, 500);
+    }
+    async function workerReanudar() {
+      await fetch('/api/worker/reanudar', { method: 'POST' });
+      toast('Worker reanudado. ¡Enviando mensajes!', 'success');
+      setTimeout(loadWorkerStatus, 500);
+    }
+    async function workerResetear() {
+      const r = await fetch('/api/worker/resetear-procesando', { method: 'POST' });
+      const d = await r.json();
+      toast(`${d.leads_reseteados} leads reseteados a PENDIENTE.`, 'info');
+      setTimeout(refreshAll, 500);
+    }
+
+    /* ────────────────────────────────────────────────────────
+       LEADS TABLE
+    ──────────────────────────────────────────────────────── */
+    async function loadLeads() {
+      const estado = document.getElementById('filter-estado').value;
+      const ia = document.getElementById('filter-ia').value;
+      const limit = document.getElementById('filter-limit').value;
+
+      let url = `/api/reportes/leads?limit=${limit}`;
+      if (estado) url += `&estado=${estado}`;
+      if (ia) url += `&clasificacion=${ia}`;
+
+      try {
+        const r = await fetch(url);
+        const d = await r.json();
+        document.getElementById('leads-count').textContent = `${d.total} leads encontrados`;
+
+        const tbody = document.getElementById('leads-tbody');
+        if (!d.leads || d.leads.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="icon">📭</div><p>No hay leads con ese filtro</p></div></td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = d.leads.map(l => `
+      <tr>
+        <td style="color:var(--muted);font-size:12px">${l.id}</td>
+        <td class="cell-name">${escHtml(l.nombre)}</td>
+        <td class="cell-phone">${escHtml(l.telefono)}</td>
+        <td class="cell-model" title="${escHtml(l.modelo || '')}">${escHtml(l.modelo || '—')}</td>
+        <td>${estadoBadge(l.estado)}</td>
+        <td>${iaBadge(l.clasificacion)}</td>
+        <td style="font-size:12px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(l.razon_ia || '')}">${escHtml(l.razon_ia || '—')}</td>
+        <td style="font-size:12px;color:var(--muted);white-space:nowrap">${l.fecha_ingesta ? fmtDate(l.fecha_ingesta) : '—'}</td>
+      </tr>`).join('');
+      } catch (e) {
+        toast('Error al cargar leads', 'error');
+      }
+    }
+
+    function estadoBadge(estado) {
+      const map = {
+        'PENDIENTE': ['badge-pending', '⏳'],
+        'PROCESANDO': ['badge-process', '⚡'],
+        'ENVIADO': ['badge-sent', '📤'],
+        'CONTACTADO': ['badge-contact', '🔥'],
+        'ERROR_NUMERO': ['badge-error', '❌'],
+      };
+      const [cls, icon] = map[estado] || ['badge-pending', '?'];
+      return `<span class="badge ${cls}">${icon} ${estado}</span>`;
+    }
+
+    function iaBadge(ia) {
+      if (!ia) return `<span style="color:var(--muted);font-size:12px">—</span>`;
+      const map = {
+        'INTERES': ['badge-interes', '🔥'],
+        'DUDA': ['badge-duda', '🤔'],
+        'RECHAZO': ['badge-rechazo', '❌'],
+      };
+      const [cls, icon] = map[ia] || ['badge-pending', ia];
+      return `<span class="badge ${cls}">${icon} ${ia}</span>`;
+    }
+
+    /* ────────────────────────────────────────────────────────
+       UPLOAD
+    ──────────────────────────────────────────────────────── */
+    let selectedFile = null;
+
+    function onFileSelected(e) {
+      const f = e.target.files[0];
+      if (!f) return;
+      selectedFile = f;
+      document.getElementById('file-name').textContent = f.name;
+      document.getElementById('file-size').textContent = formatBytes(f.size);
+      document.getElementById('file-selected').style.display = 'block';
+      document.getElementById('btn-cargar').disabled = false;
+    }
+
+    function clearFile() {
+      selectedFile = null;
+      document.getElementById('file-input').value = '';
+      document.getElementById('file-selected').style.display = 'none';
+      document.getElementById('btn-cargar').disabled = true;
+      document.getElementById('upload-result').classList.remove('visible');
+    }
+
+    // Drag & drop
+    const zone = document.getElementById('upload-zone');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('drag-over');
+      const f = e.dataTransfer.files[0];
+      if (f) { document.getElementById('file-input').files = e.dataTransfer.files; onFileSelected({ target: { files: [f] } }); }
+    });
+
+    async function cargarArchivo() {
+      if (!selectedFile) return;
+      const btn = document.getElementById('btn-cargar');
+      const btnText = document.getElementById('btn-cargar-text');
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span> Procesando...';
+
+      const form = new FormData();
+      form.append('archivo', selectedFile);
+      const campana = document.getElementById('campana-input').value.trim();
+      if (campana) form.append('campana', campana);
+
+      try {
+        const r = await fetch('/api/ingesta/cargar', { method: 'POST', body: form });
+        const d = await r.json();
+
+        if (r.ok) {
+          const s = d.estadisticas;
+          const result = document.getElementById('upload-result');
+          result.classList.add('visible');
+          result.innerHTML = `
+        <div class="result-row">
+          <span class="result-label">📊 Total de filas</span>
+          <span class="result-value">${s.total_filas}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">✅ Leads válidos cargados</span>
+          <span class="result-value green">${s.validos}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">❌ Números inválidos descartados</span>
+          <span class="result-value red">${s.invalidos}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">⚠️ Duplicados omitidos</span>
+          <span class="result-value yellow">${s.duplicados}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">🗂️ Modo de lectura</span>
+          <span class="result-value">${s.modo_lectura === 'sin_cabeceras' ? 'Sin cabeceras (Nosis)' : 'Con cabeceras'}</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">📁 Campaña</span>
+          <span class="result-value">${s.campana}</span>
+        </div>`;
+          toast(`✅ ${s.validos} leads cargados y listos para enviar!`, 'success', 5000);
+        } else {
+          toast('Error: ' + (d.detail || 'Error desconocido'), 'error');
+        }
+      } catch (e) {
+        toast('Error de red al cargar el archivo', 'error');
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = '📥 Cargar Base';
+      }
+    }
+
+    /* ────────────────────────────────────────────────────────
+       CONFIG
+    ──────────────────────────────────────────────────────── */
+    async function testWhatsApp() {
+      toast('Probando conexión con Evolution API...', 'info');
+      try {
+        const r = await fetch('/health');
+        const d = await r.json();
+        if (d.instancia_whatsapp === 'open') {
+          toast('✅ WhatsApp conectado correctamente!', 'success');
+        } else {
+          toast(`⚠️ WhatsApp estado: ${d.instancia_whatsapp}. Verificá la instancia en el VPS.`, 'error', 6000);
+        }
+      } catch (e) {
+        toast('No se pudo contactar al servidor', 'error');
+      }
+    }
+
+    /* ────────────────────────────────────────────────────────
+       UTILS
+    ──────────────────────────────────────────────────────── */
+    function escHtml(s) {
+      if (!s) return '';
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function formatBytes(b) {
+      if (b < 1024) return b + ' B';
+      if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+      return (b / 1048576).toFixed(1) + ' MB';
+    }
+    function fmtDate(iso) {
+      try { return new Date(iso).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); }
+      catch { return iso; }
+    }
+
+    /* ────────────────────────────────────────────────────────
+       AUTO-REFRESH cada 30 segundos si estamos en dashboard
+    ──────────────────────────────────────────────────────── */
+    setInterval(() => {
+      if (document.getElementById('page-dashboard').classList.contains('active')) {
+        refreshAll();
+      }
+    }, 30000);
+
+    // Carga inicial
+    refreshAll();
+  </script>
+</body>
+
+</html>

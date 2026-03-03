@@ -1,0 +1,54 @@
+INSTRUCCIONES DE ARRANQUE - MICROSERVICIO WSP
+
+========================================
+PASO 1: CREAR EL ARCHIVO .env
+========================================
+Copiar .env.example como .env y completar:
+
+  EVOLUTION_API_URL=http://TU_VPS_IP:8080
+  EVOLUTION_API_KEY=tu-api-key
+  EVOLUTION_INSTANCE=nombre-de-tu-instancia
+  LLM_API_KEY=sk-... (OpenAI) 
+  CRM_WEBHOOK_URL=https://... (opcional, para handoff)
+
+========================================
+PASO 2: LEVANTAR EL SERVIDOR LOCAL
+========================================
+  .venv\Scripts\uvicorn app.main:app --reload --port 7000
+
+  O en el VPS (Linux):
+  .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 7000
+
+========================================
+PASO 3: ABRIR LA INTERFAZ WEB
+========================================
+  http://localhost:7000/docs   ← Swagger UI interactivo
+  http://localhost:7000/redoc  ← Documentación alternativa
+  http://localhost:7000/health ← Estado del sistema
+
+========================================
+PASO 4: CARGAR EL EXCEL
+========================================
+  POST http://localhost:7000/api/ingesta/cargar
+  - Campo "archivo": seleccionar el .xlsx
+  - Campo "campana": nombre de la campaña (ej: "Renault_Marzo_2025")
+
+========================================
+PASO 5: MONITOREAR EL ENVÍO
+========================================
+  GET http://localhost:7000/api/worker/estado
+  GET http://localhost:7000/api/reportes/resumen
+
+========================================
+PASO 6: CONFIGURAR WEBHOOK EN EVOLUTION API
+========================================
+  URL: http://TU_IP:7000/api/webhook/evolution
+  Header: x-webhook-token: (el valor de WEBHOOK_SECRET_TOKEN)
+  Eventos: messages.upsert
+
+========================================
+COMANDOS ÚTILES
+========================================
+  Pausar envíos:    POST /api/worker/pausar  
+  Reanudar envíos:  POST /api/worker/reanudar
+  Ver leads:        GET  /api/reportes/leads?estado=INTERESADO

@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Datos sensibles
+.env
+*.db
+*.db-journal
+
+# Archivos de clave SSH
+*.pem
+
+# Archivos temporales
+tmp_test_crm.py
+*.xlsx
+*.csv
+vps_key.pem
+
+# Logs
+*.log

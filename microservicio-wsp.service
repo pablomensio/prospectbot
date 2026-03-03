@@ -1,0 +1,17 @@
+[Unit]
+Description=Microservicio Prospección WhatsApp
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/microservicio-wsp
+EnvironmentFile=/home/ubuntu/microservicio-wsp/.env
+ExecStart=/home/ubuntu/microservicio-wsp/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 7000 --workers 1
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
