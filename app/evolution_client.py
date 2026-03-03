@@ -118,11 +118,11 @@ async def obtener_estado_instancia() -> dict:
 async def obtener_qr_conexion() -> dict:
     """
     Obtiene el QR de conexión para la instancia de WhatsApp.
-    Reintenta hasta 3 veces si el QR todavía no está listo.
+    Reintenta hasta 5 veces si el QR todavía no está listo.
     """
     import asyncio
 
-    for intento in range(3):
+    for intento in range(5):
         url = f"{settings.EVOLUTION_API_URL}/instance/connect/{settings.EVOLUTION_INSTANCE}"
         try:
             async with httpx.AsyncClient(timeout=30) as client:
@@ -130,20 +130,25 @@ async def obtener_qr_conexion() -> dict:
 
             if response.status_code == 200:
                 data = response.json()
-                # Si ya tiene el código QR
-                if data.get("code"):
-                    return data
-                # Si count=0, esperar y reintentar
-                if intento < 2:
-                    await asyncio.sleep(2)
+                
+                # Intentar encontrar el código en varias ubicaciones posibles
+                code = data.get("code") or data.get("qrcode", {}).get("code") or data.get("base64")
+                
+                if code:
+                    # Devolvemos un formato estándar para el frontend
+                    return {"code": code, "count": data.get("qrcode", {}).get("count", 1)}
+                
+                # Si no hay código pero la instancia existe, esperamos a que se genere
+                if intento < 4:
+                    await asyncio.sleep(3)
                     continue
 
-            return {"error": f"HTTP {response.status_code}: {response.text[:200]}"}
+            return {"error": f"QR no listo tras varios intentos. Estado: {response.status_code}"}
 
         except Exception as e:
-            return {"error": str(e)}
+            return {"error": f"Error de conexión: {str(e)}"}
 
-    return {"error": "QR no disponible aún. Reintentá en unos segundos."}
+    return {"error": "El servidor de WhatsApp tarda en generar el QR. Reintentá en 10 segundos."}
 
 
 # ---------------------------------------------------------------------------
