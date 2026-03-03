@@ -118,21 +118,32 @@ async def obtener_estado_instancia() -> dict:
 async def obtener_qr_conexion() -> dict:
     """
     Obtiene el QR de conexión para la instancia de WhatsApp.
-    Endpoint: GET /instance/connect/{instance}
+    Reintenta hasta 3 veces si el QR todavía no está listo.
     """
-    url = f"{settings.EVOLUTION_API_URL}/instance/connect/{settings.EVOLUTION_INSTANCE}"
+    import asyncio
 
-    try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            response = await client.get(url, headers=_headers())
+    for intento in range(3):
+        url = f"{settings.EVOLUTION_API_URL}/instance/connect/{settings.EVOLUTION_INSTANCE}"
+        try:
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.get(url, headers=_headers())
 
-        if response.status_code == 200:
-            return response.json()
+            if response.status_code == 200:
+                data = response.json()
+                # Si ya tiene el código QR
+                if data.get("code"):
+                    return data
+                # Si count=0, esperar y reintentar
+                if intento < 2:
+                    await asyncio.sleep(2)
+                    continue
 
-        return {"error": f"Error {response.status_code}: {response.text}"}
+            return {"error": f"HTTP {response.status_code}: {response.text[:200]}"}
 
-    except Exception as e:
-        return {"error": str(e)}
+        except Exception as e:
+            return {"error": str(e)}
+
+    return {"error": "QR no disponible aún. Reintentá en unos segundos."}
 
 
 # ---------------------------------------------------------------------------
